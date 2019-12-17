@@ -13,6 +13,7 @@ namespace CodingChallenges.DiagnosisRunner.DataAccess
 
     public class DiagnosisRepository : IDiagnosisRepository
     {
+        //TODO: parameterize with memberId!
         public List<MemberDiagnosticReport> GetMemberDiagnosisReport(int memberId)
         {
             var context = new DiagnosisContext();
