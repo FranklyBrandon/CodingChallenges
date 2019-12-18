@@ -1,8 +1,8 @@
 ﻿select m.FirstName, m.LastName, d.DiagnosisID as "Most Severe Diagnosis ID", d.DiagnosisDescription as "Most Severe Diagnosis Description", dc.DiagnosisCategoryID as "Category ID", dc.CategoryDescription as "Category Description", dc.CategoryScore as "Category Score",
 cast(case 
-    when (dc2.DiagnosisCategoryID is not null or dc.DiagnosisCategoryID is null) then 1
-	else 0
-	end as bit) as "Is Most Severe Category"
+     when (dc2.DiagnosisCategoryID is not null or dc.DiagnosisCategoryID is null) then 1
+	 else 0
+	 end as bit) as "Is Most Severe Category"
 from dbo.Member m
 --Join on MemberDiagnosis using a subquery that returns the min(DiagnosisID) per member to find the 'Most Severe Diagnosis'
 left join dbo.MemberDiagnosis md on md.MemberID = m.MemberID
