@@ -13,10 +13,8 @@ namespace CodingChallenges.DiagnosisRunner.DataAccess
 
     public class DiagnosisRepository : IDiagnosisRepository
     {
-        //TODO: parameterize with memberId!
         public List<MemberDiagnosticReport> GetMemberDiagnosisReport(int memberId)
-        {
-            
+        {      
             using (var context = new DiagnosisContext())
             {
                 List<MemberDiagnosticReport> reports = context.MemberDiagnosticReports.FromSqlInterpolated($@"

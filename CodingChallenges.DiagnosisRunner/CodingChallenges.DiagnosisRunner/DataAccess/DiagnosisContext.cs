@@ -11,7 +11,7 @@ namespace CodingChallenges.DiagnosisRunner.DataAccess
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Data Source=DESKTOP-D8OD28V;Initial Catalog=Pulse8TestDB;Integrated Security=True");
+            optionsBuilder.UseSqlServer("My Test Database");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
