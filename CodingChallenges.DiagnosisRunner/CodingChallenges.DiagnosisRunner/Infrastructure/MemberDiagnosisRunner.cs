@@ -1,6 +1,8 @@
 ﻿using CodingChallenges.DiagnosisRunner.DataAccess;
+using CodingChallenges.DiagnosisRunner.DataAccess.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace CodingChallenges.DiagnosisRunner.Infrastructure
@@ -22,7 +24,20 @@ namespace CodingChallenges.DiagnosisRunner.Infrastructure
             Console.WriteLine("Welcome to the Diagnosis Runner!");
             Console.WriteLine("Please enter a Member ID:");
             int memberId = ReadInput();
-            _repo.GetMemberDiagnosisReport(memberId);
+            List<MemberDiagnosticReport> reports = _repo.GetMemberDiagnosisReport(memberId);
+
+            if (reports.Any())
+            {
+                Console.WriteLine($"{reports.Count} records for Member ID {memberId} reported:");
+                foreach (var report in reports)
+                {
+                    Console.WriteLine(report);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"No reports returned for the supplied Member ID: {memberId}");
+            }
         }
 
         private int ReadInput()

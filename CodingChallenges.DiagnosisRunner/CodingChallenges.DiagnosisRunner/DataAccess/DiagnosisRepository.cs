@@ -16,8 +16,10 @@ namespace CodingChallenges.DiagnosisRunner.DataAccess
         //TODO: parameterize with memberId!
         public List<MemberDiagnosticReport> GetMemberDiagnosisReport(int memberId)
         {
-            var context = new DiagnosisContext();
-            List<MemberDiagnosticReport> reports = context.MemberDiagnosticReports.FromSqlRaw(@"
+            
+            using (var context = new DiagnosisContext())
+            {
+                List<MemberDiagnosticReport> reports = context.MemberDiagnosticReports.FromSqlInterpolated($@"
                 select m.FirstName, m.LastName, d.DiagnosisID, d.DiagnosisDescription, dc.DiagnosisCategoryID, dc.CategoryDescription, dc.CategoryScore,
                 cast(case 
                     when(dc2.DiagnosisCategoryID is not null or dc.DiagnosisCategoryID is null) then 1
@@ -41,11 +43,13 @@ namespace CodingChallenges.DiagnosisRunner.DataAccess
                                                 join dbo.DiagnosisCategoryMap dcm2 on dcm2.DiagnosisCategoryID = dc3.DiagnosisCategoryID
                                                 join dbo.MemberDiagnosis md3 on md3.DiagnosisID = dcm2.DiagnosisID
                                                 where md3.MemberID = m.MemberID)
+                where m.MemberId = {memberId}
                 --Group by to show distinct member / category combinations
                     group by m.FirstName, m.LastName, d.DiagnosisID, d.DiagnosisDescription, dc.DiagnosisCategoryID, dc.CategoryDescription, dc.CategoryScore, dc2.DiagnosisCategoryID"
             ).ToListAsync().Result;
 
-            return reports;
+                return reports;
+            }
         }
     }
 }
