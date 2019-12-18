@@ -11,7 +11,7 @@ namespace CodingChallenges.DiagnosisRunner.DataAccess
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("My Test Database");
+            optionsBuilder.UseSqlServer("My test database");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

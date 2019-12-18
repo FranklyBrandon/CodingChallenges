@@ -18,32 +18,33 @@ namespace CodingChallenges.DiagnosisRunner.DataAccess
             using (var context = new DiagnosisContext())
             {
                 List<MemberDiagnosticReport> reports = context.MemberDiagnosticReports.FromSqlInterpolated($@"
-                select m.FirstName, m.LastName, d.DiagnosisID, d.DiagnosisDescription, dc.DiagnosisCategoryID, dc.CategoryDescription, dc.CategoryScore,
-                cast(case 
-                    when(dc2.DiagnosisCategoryID is not null or dc.DiagnosisCategoryID is null) then 1
-                    else 0
-                end as bit) as ""IsMostSevereCategory""
-                from dbo.Member m
-                --Join on MemberDiagnosis using a subquery that returns the min(DiagnosisID) per member to find the 'Most Severe Diagnosis'
-                left join dbo.MemberDiagnosis md on md.MemberID = m.MemberID
-                and md.DiagnosisID =
-                    (select min(md2.DiagnosisID) from dbo.MemberDiagnosis md2
-                        where md2.MemberID = md.MemberID)
-                --Join on MemberDiagnosis again to accomodate all Member / Category combinations
-                left join dbo.MemberDiagnosis md2 on md2.MemberID = m.MemberID
-                --Join Diagnosis on md and not md2 to obtain the most severe diagnosis description
-                left join dbo.Diagnosis d on d.DiagnosisID = md.DiagnosisID
-                left join dbo.DiagnosisCategoryMap dcm on dcm.DiagnosisID = md2.DiagnosisID
-                left join dbo.DiagnosisCategory dc on dc.DiagnosisCategoryID = dcm.DiagnosisCategoryID
-                --Join on DiagnosisCategory again to find the min(DiagnosisCatgoryID) per member
-                left join dbo.DiagnosisCategory dc2 on dc2.DiagnosisCategoryID = dcm.DiagnosisCategoryID
-                and dc2.CategoryDescription = (select min(dc3.CategoryDescription) from dbo.DiagnosisCategory dc3
-                                                join dbo.DiagnosisCategoryMap dcm2 on dcm2.DiagnosisCategoryID = dc3.DiagnosisCategoryID
-                                                join dbo.MemberDiagnosis md3 on md3.DiagnosisID = dcm2.DiagnosisID
-                                                where md3.MemberID = m.MemberID)
-                where m.MemberId = {memberId}
-                --Group by to show distinct member / category combinations
-                    group by m.FirstName, m.LastName, d.DiagnosisID, d.DiagnosisDescription, dc.DiagnosisCategoryID, dc.CategoryDescription, dc.CategoryScore, dc2.DiagnosisCategoryID"
+                    select m.FirstName, m.LastName, ds.DiagnosisID, ds.DiagnosisDescription, dc.DiagnosisCategoryID, dc.CategoryDescription, dc.CategoryScore,
+                    cast(case
+                         when(dc2.DiagnosisCategoryID is not null or dc.DiagnosisCategoryID is null) then 1
+                         else 0
+                         end as bit) ""IsMostSevereCategory""
+                    FROM dbo.Member m
+                    --Minimum diagnosis Id into Alias d
+                    LEFT JOIN
+                    (
+                        SELECT m.MemberId, dc.DiagnosisCategoryID, min(md.DiagnosisID) as DiagnosisId
+                        FROM dbo.Member m
+                        LEFT JOIN dbo.MemberDiagnosis md on md.MemberID = m.MemberID
+                        LEFT JOIN dbo.DiagnosisCategoryMap dcm on dcm.DiagnosisID = md.DiagnosisID
+                        LEFT join dbo.DiagnosisCategory dc on dc.DiagnosisCategoryID = dcm.DiagnosisCategoryID
+                        GROUP BY m.MemberId, dc.DiagnosisCategoryID
+                    ) d ON d.MemberId = m.MemberId
+                    LEFT JOIN dbo.Diagnosis ds ON ds.DiagnosisId = d.DiagnosisId
+                    LEFT JOIN dbo.DiagnosisCategoryMap dcm on dcm.DiagnosisID = d.DiagnosisID
+                    LEFT JOIN dbo.DiagnosisCategory dc on dc.DiagnosisCategoryID = dcm.DiagnosisCategoryID
+                    --Join on DiagnosisCategory again to find the min(DiagnosisCatgoryID) per member for case statement
+                    LEFT JOIN dbo.DiagnosisCategory dc2 on dc2.DiagnosisCategoryID = dcm.DiagnosisCategoryID
+                    AND dc2.DiagnosisCategoryID = (select min(dc3.DiagnosisCategoryID) from dbo.DiagnosisCategory dc3
+                                                   JOIN dbo.DiagnosisCategoryMap dcm2 on dcm2.DiagnosisCategoryID = dc3.DiagnosisCategoryID
+                                                   JOIN dbo.MemberDiagnosis md3 on md3.DiagnosisID = dcm2.DiagnosisID
+                                                   where md3.MemberID = m.MemberID)
+                    where m.MemberId = {memberId}
+                    group by m.FirstName, m.LastName, ds.DiagnosisID, ds.DiagnosisDescription, dc.DiagnosisCategoryID, dc.CategoryDescription, dc.CategoryScore, dc.DiagnosisCategoryID, dc2.DiagnosisCategoryID"
             ).ToListAsync().Result;
 
                 return reports;
